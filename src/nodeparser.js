@@ -304,6 +304,9 @@ NodeParser.prototype.paintNode = function(container) {
     }, this);
 
     this.renderer.clip(container.backgroundClip, function() {
+
+        log(container, container.node);
+
         switch (container.node.nodeName) {
         case "svg":
         case "IFRAME":
@@ -355,7 +358,11 @@ NodeParser.prototype.paintFormValue = function(container) {
         wrapper.style.position = "absolute";
         wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
-        wrapper.textContent = container.getValue();
+        if (this.options.redacted) {
+          wrapper.textContent = 'XXXXXXXXXXXXXXXXXXX';
+        } else {
+          wrapper.textContent = container.getValue();
+        }
         document.body.appendChild(wrapper);
         this.paintText(new TextContainer(wrapper.firstChild, container));
         document.body.removeChild(wrapper);

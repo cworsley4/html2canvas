@@ -43,9 +43,14 @@ CanvasRenderer.prototype.taints = function(imageContainer) {
     return imageContainer.tainted;
 };
 
-CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx, dy, dw, dh) {
+CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx, dy, dw, dh, redact) {
+    redact = redact || false;
     if (!this.taints(imageContainer) || this.options.allowTaint) {
-        this.ctx.drawImage(imageContainer.image, sx, sy, sw, sh, dx, dy, dw, dh);
+        if(imageContainer.redacted) {
+          this.ctx.fillRect(dx, dy, dw, dh, 'black');
+        } else {
+          this.ctx.drawImage(imageContainer.image, sx, sy, sw, sh, dx, dy, dw, dh);
+        }
     }
 };
 
