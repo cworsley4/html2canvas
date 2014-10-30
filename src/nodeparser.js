@@ -332,7 +332,7 @@ NodeParser.prototype.paintNode = function(container) {
         case "INPUT":
         case "TEXTAREA":
             this.paintFormValue(container);
-            break;
+            break;1
         }
     }, this);
 };
@@ -358,11 +358,19 @@ NodeParser.prototype.paintFormValue = function(container) {
         wrapper.style.position = "absolute";
         wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
-        if (this.options.redacted) {
-          wrapper.textContent = 'XXXXXXXXXXXXXXXXXXX';
+
+        if (this.options.redacted.on && container.node.classList.length > 0) {
+          var classNameLenght = container.node.className.length;
+
+          for (var i=0; i < classNameLenght; i++) {
+            if (container.node.classList[i] === this.options.redacted.class) {
+              wrapper.textContent = 'XXXXXXXXXXXXXXXXXXX';
+            }
+          }
         } else {
           wrapper.textContent = container.getValue();
         }
+
         document.body.appendChild(wrapper);
         this.paintText(new TextContainer(wrapper.firstChild, container));
         document.body.removeChild(wrapper);
