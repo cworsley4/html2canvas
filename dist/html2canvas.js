@@ -1350,6 +1350,9 @@ NodeParser.prototype.paintNode = function(container) {
     }, this);
 
     this.renderer.clip(container.backgroundClip, function() {
+
+        log(container, container.node);
+
         switch (container.node.nodeName) {
         case "svg":
         case "IFRAME":
@@ -1375,7 +1378,7 @@ NodeParser.prototype.paintNode = function(container) {
         case "INPUT":
         case "TEXTAREA":
             this.paintFormValue(container);
-            break;
+            break;1
         }
     }, this);
 };
@@ -1401,11 +1404,19 @@ NodeParser.prototype.paintFormValue = function(container) {
         wrapper.style.position = "absolute";
         wrapper.style.left = bounds.left + "px";
         wrapper.style.top = bounds.top + "px";
-        if (this.options.redacted) {
-          wrapper.textContent = 'XXXXXXXXXXXXXXXXXXX';
+
+        if (this.options.redacted.on && container.node.classList.length > 0) {
+          var classNameLenght = container.node.className.length;
+
+          for (var i=0; i < classNameLenght; i++) {
+            if (container.node.classList[i] === this.options.redacted.class) {
+              wrapper.textContent = 'XXXXXXXXXXXXXXXXXXX';
+            }
+          }
         } else {
           wrapper.textContent = container.getValue();
         }
+
         document.body.appendChild(wrapper);
         this.paintText(new TextContainer(wrapper.firstChild, container));
         document.body.removeChild(wrapper);
@@ -1953,6 +1964,18 @@ Renderer.prototype.renderImage = function(container, bounds, borderData, imageCo
         paddingBottom = container.cssInt('paddingBottom'),
         borders = borderData.borders;
 
+    if (this.options.redacted.on && imageContainer.src.className.length > 0) {
+
+      var classNameLenght = imageContainer.src.className.length;
+
+      for (var i=0; i < classNameLenght; i++) {
+        if (imageContainer.src.classList[i] === this.options.redacted.class) {
+          imageContainer.redacted = true;
+        }
+      }
+
+    }
+
     var width = bounds.width - (borders[1].width + borders[3].width + paddingLeft + paddingRight);
     var height = bounds.height - (borders[0].width + borders[2].width + paddingTop + paddingBottom);
     this.drawImage(
@@ -2320,9 +2343,14 @@ CanvasRenderer.prototype.taints = function(imageContainer) {
     return imageContainer.tainted;
 };
 
-CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx, dy, dw, dh) {
+CanvasRenderer.prototype.drawImage = function(imageContainer, sx, sy, sw, sh, dx, dy, dw, dh, redact) {
+    redact = redact || false;
     if (!this.taints(imageContainer) || this.options.allowTaint) {
-        this.ctx.drawImage(imageContainer.image, sx, sy, sw, sh, dx, dy, dw, dh);
+        if(imageContainer.redacted) {
+          this.ctx.fillRect(dx, dy, dw, dh, 'black');
+        } else {
+          this.ctx.drawImage(imageContainer.image, sx, sy, sw, sh, dx, dy, dw, dh);
+        }
     }
 };
 
