@@ -332,7 +332,7 @@ NodeParser.prototype.paintNode = function(container) {
         case "INPUT":
         case "TEXTAREA":
             this.paintFormValue(container);
-            break;1
+            break;
         }
     }, this);
 };
