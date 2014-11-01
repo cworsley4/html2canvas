@@ -14,6 +14,7 @@ window.html2canvas = function(nodeList, options) {
     options.removeContainer = typeof(options.removeContainer) === "undefined" ? true : options.removeContainer;
     options.javascriptEnabled = typeof(options.javascriptEnabled) === "undefined" ? false : options.javascriptEnabled;
     options.imageTimeout = typeof(options.imageTimeout) === "undefined" ? 10000 : options.imageTimeout;
+    options.redacted = typeof(options.redacted) === 'undefined' ? {on: false, class: ''} : options.redacted;
 
     if (typeof(nodeList) === "string") {
         if (typeof(options.proxy) !== "string") {
