@@ -1411,9 +1411,9 @@ NodeParser.prototype.paintFormValue = function(container) {
         wrapper.style.top = bounds.top + "px";
 
         if (this.options.redacted.on && container.node.classList.length > 0) {
-          var classNameLenght = container.node.className.length;
+          var classNameLength = container.node.className.length;
 
-          for (var i=0; i < classNameLenght; i++) {
+          for (var i=0; i < classNameLength; i++) {
             if (container.node.classList[i] === this.options.redacted.class) {
               wrapper.textContent = 'XXXXXXXXXXXXXXXXXXX';
             }
