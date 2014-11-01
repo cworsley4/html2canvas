@@ -285,56 +285,61 @@ NodeParser.prototype.paint = function(container) {
     }
 };
 
-NodeParser.prototype.paintNode = function(container) {
-    if (isStackingContext(container)) {
-        this.renderer.setOpacity(container.opacity);
-        this.renderer.ctx.save();
-        if (container.hasTransform()) {
-            this.renderer.setTransform(container.parseTransform());
-        }
+NodeParser.prototype.paintFormValue = function(container) {
+
+    function maskText(text, coverText) {
+      coverText = coverText.concat(coverText);
+
+      if (text.length > coverText.length) {
+        mastText(text, coverText);
+      } else {
+        return coverText.substr(0, text.length);
+      }
     }
 
-    var bounds = container.parseBounds();
-    this.renderer.clip(container.backgroundClip, function() {
-        this.renderer.renderBackground(container, bounds, container.borders.borders.map(getWidth));
-    }, this);
+    if (container.getValue().length > 0) {
+        var coverText = 'XXXXXXXXXXXXXXXXXXX';
+        var document = container.node.ownerDocument;
+        var wrapper = document.createElement('html2canvaswrapper');
+        var properties = ['lineHeight', 'textAlign', 'fontFamily', 'fontWeight', 'fontSize', 'color',
+            'paddingLeft', 'paddingTop', 'paddingRight', 'paddingBottom',
+            'width', 'height', 'borderLeftStyle', 'borderTopStyle', 'borderLeftWidth', 'borderTopWidth',
+            'boxSizing', 'whiteSpace', 'wordWrap'];
 
-    this.renderer.clip(container.clip, function() {
-        this.renderer.renderBorders(container.borders.borders);
-    }, this);
-
-    this.renderer.clip(container.backgroundClip, function() {
-
-        log(container, container.node);
-
-        switch (container.node.nodeName) {
-        case "svg":
-        case "IFRAME":
-            var imgContainer = this.images.get(container.node);
-            if (imgContainer) {
-                this.renderer.renderImage(container, bounds, container.borders, imgContainer);
-            } else {
-                log("Error loading <" + container.node.nodeName + ">", container.node);
+        properties.forEach(function(property) {
+            try {
+                wrapper.style[property] = container.css(property);
+            } catch(e) {
+                // Older IE has issues with "border"
+                log("html2canvas: Parse: Exception caught in renderFormValue: " + e.message);
             }
-            break;
-        case "IMG":
-            var imageContainer = this.images.get(container.node.src);
-            if (imageContainer) {
-                this.renderer.renderImage(container, bounds, container.borders, imageContainer);
-            } else {
-                log("Error loading <img>", container.node.src);
+        });
+        var bounds = container.parseBounds();
+        wrapper.style.position = "absolute";
+        wrapper.style.left = bounds.left + "px";
+        wrapper.style.top = bounds.top + "px";
+
+        if (this.options.redacted.on && container.node.classList.length > 0) {
+          var classNameLength = container.node.className.length;
+          var containerText = container.getValue();
+
+          for (var i=0; i < classNameLength; i++) {
+            if (container.node.classList[i] === this.options.redacted.class) {
+              if (containerText.length >  coverText.length) {
+                wrapper.textContent = maskText(containerText, coverText);
+              } else {
+                wrapper.textContent = coverText.substr(0, containerText.length);
+              }
             }
-            break;
-        case "CANVAS":
-            this.renderer.renderImage(container, bounds, container.borders, {image: container.node});
-            break;
-        case "SELECT":
-        case "INPUT":
-        case "TEXTAREA":
-            this.paintFormValue(container);
-            break;
+          }
+        } else {
+          wrapper.textContent = container.getValue();
         }
-    }, this);
+
+        document.body.appendChild(wrapper);
+        this.paintText(new TextContainer(wrapper.firstChild, container));
+        document.body.removeChild(wrapper);
+    }
 };
 
 NodeParser.prototype.paintFormValue = function(container) {
